@@ -1,3 +1,20 @@
+""""
+Copyright 2022 Vanessa Boehm
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+""""
+
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -38,9 +55,7 @@ class Autoencoder(nn.Module):
         
         self.criterion = getattr(nn, tparams['criterion'])()
         
-        self.train_loader, valid_loader = get_data(dparams['dataset'],dparams['loc'],tparams['batchsize'])
-        
-        self.valid_loader = iter(valid_loader)
+        self.train_loader, self.valid_loader = get_data(dparams['dataset'],dparams['loc'],tparams['batchsize'])
         
         self.device = device
         
@@ -91,6 +106,7 @@ class Autoencoder(nn.Module):
     def train(self, nepochs):
         running_loss    = []
         validation_loss = []
+        valid_loader = iter(self.valid_loader)
         for epoch in range(nepochs):
             r_loss = 0
             for ii, (data, _) in enumerate(self.train_loader,0):
@@ -103,10 +119,15 @@ class Autoencoder(nn.Module):
                 r_loss+=loss.item()
             self.scheduler.step()
             running_loss.append(r_loss/ii)
-            valid_data, _ = next(self.valid_loader)
+            try:
+                valid_data, _ = next(valid_loader)
+            except:
+                valid_loader  = iter(self.valid_loader)
+                valid_data, _ = next(valid_loader)
             valid_data = valid_data.to(self.device)
-            recon      = self.forward(valid_data)
-            loss       = self.criterion(recon, valid_data)
+            with torch.no_grad():
+                recon      = self.forward(valid_data)
+                loss       = self.criterion(recon, valid_data)
             validation_loss.append(loss.item())
             print(f'epoch: {epoch:d}, training loss: {running_loss[-1]:.4e}, validation loss: {loss:.4e}, learning rate: {self.scheduler.get_last_lr()[0]:.4e}')
         return running_loss, validation_loss
