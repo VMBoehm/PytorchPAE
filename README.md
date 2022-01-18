@@ -8,7 +8,8 @@ The current version features
 - a maximally modular design that allows the user to add custom datasets, architectures and loss functions
 
 
-### Installation and Requirements
+
+## Installation and Requirements
 
 Requirements: 
 - pytorch 1.8.0
@@ -30,7 +31,8 @@ pip install -e .
 ```
 (follow the same steps to install sinf)
 
-### Getting started
+
+## Getting started
 
 A tutorial for how to use his package is provided [here](https://github.com/VMBoehm/PytorchPAE/blob/main/notebooks/Tutorial.ipynb)
 
