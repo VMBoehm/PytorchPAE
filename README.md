@@ -10,7 +10,7 @@ Requirements:
 - [sinf] (https://github.com/biweidai/SINF)
 
 Optional:
-- optuna 
+- [optuna] (https://optuna.readthedocs.io/en/stable/)
 - torchsummary
 
 
