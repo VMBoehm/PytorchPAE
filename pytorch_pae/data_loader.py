@@ -19,23 +19,36 @@ from torchvision import datasets
 from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader
 
+import pytorch_pae.custom_datasets as cd
 
-def get_data(data, loc, batchsize, valid_batchsize=256):
+def get_data(data, loc, batchsize, valid_batchsize, transforms=None):
+    shuffle = True
     
     if data in dir(datasets):
         dataset = getattr(datasets,data)
     
-        training_data = dataset(root=loc,train=True,download=True,transform=ToTensor())
+        training_data = dataset(root=loc,train=True,download=True,transform=transforms)
 
-        valid_data    = dataset(root=loc,train=False,download=True,transform=ToTensor())
+        valid_data    = dataset(root=loc,train=False,download=True,transform=transforms)
+    elif data in dir(cd):
+        dataset       = getattr(cd,data)
+        
+        training_data = dataset(train=True,transform=transforms)
+
+        valid_data    = dataset(train=False,transform=transforms)
     else:
-        pass
+        raise Exception(f'Dataset {data:s} not supported at this time')
     
-    if batchsize==-1:
-        batchsize= training_data.__len__()
-    if valid_batchsize==-1:
-        valid_batchsize= valid_data.__len__()
-    train_dataloader = DataLoader(training_data, batch_size=batchsize, shuffle=True)
-    valid_dataloader = DataLoader(valid_data, batch_size=valid_batchsize, shuffle=True)
+    if batchsize == -1:
+        batchsize = training_data.__len__()
+        shuffle   = False
+    if valid_batchsize == -1:
+        valid_batchsize = valid_data.__len__()
+        shuffle   = False
+ 
+    train_dataloader = DataLoader(training_data, batch_size=batchsize, shuffle=shuffle)
+    valid_dataloader = DataLoader(valid_data, batch_size=valid_batchsize, shuffle=shuffle)
     
     return train_dataloader, valid_dataloader
+
+
