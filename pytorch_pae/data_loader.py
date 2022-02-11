@@ -21,7 +21,7 @@ from torch.utils.data import DataLoader
 
 import pytorch_pae.custom_datasets as cd
 
-def get_data(data, loc, batchsize, valid_batchsize, transforms=None):
+def get_data(data, loc, batchsize, valid_batchsize, transforms):
     shuffle = True
     
     if data in dir(datasets):

@@ -22,13 +22,14 @@ import torch.optim as optim
 import pytorch_pae.networks as nets
 import pytorch_pae.custom_losses as cl
 from pytorch_pae.data_loader import *
+from pytorch_pae import custom_transforms as ct
 
 
 from functools import partial
 
 
 class Autoencoder(nn.Module):
-    def __init__(self, params, dparams, nparams_enc, nparams_dec, tparams, device):
+    def __init__(self, params, dparams, nparams_enc, nparams_dec, tparams, device, transforms):
         super(Autoencoder, self).__init__()
         
         if params['encoder_type'] == 'conv':
@@ -64,7 +65,12 @@ class Autoencoder(nn.Module):
         elif tparams['criterion2'] in dir(cl):
             self.criterion2 = getattr(cl, tparams['criterion2'])
             
-        self.train_loader, self.valid_loader = get_data(dparams['dataset'],dparams['loc'],tparams['batchsize'],tparams['batchsze_valid'], transforms)
+        if params['contrastive']:
+            self.transforms = ct.ContrastiveTransformations(transforms, n_views=2)
+        else:
+            self.transforms = transforms
+            
+        self.train_loader, self.valid_loader = get_data(dparams['dataset'],dparams['loc'],tparams['batchsize'],tparams['batchsize_valid'], transforms)
         
         self.device = device
         
@@ -77,7 +83,7 @@ class Autoencoder(nn.Module):
         
     def forward(self, x):
         x = self.encoder(x)
-        if params['contrastive']:
+        if self.params['contrastive']:
             x = self.encoder.g.forward(x)
         else:
             x = self.decoder(x)
@@ -121,45 +127,91 @@ class Autoencoder(nn.Module):
         
         return True
     
-    def train(self, nepochs):
+    def train(self,nepochs):
+        if self.params['contrastive']:
+            running_loss, validation_loss = self.train_contrastive(nepochs)
+        else:
+            running_loss, validation_loss = self.train_autoencoder(nepochs)
+        return running_loss, validation_loss 
+    
+    def train_contrastive(self, nepochs):
         running_loss    = []
         validation_loss = []
         valid_loader = iter(self.valid_loader)
         for epoch in range(nepochs):
             r_loss = 0
             for ii, data in enumerate(self.train_loader,0):
-                if isinstance(data,dict):
-                    features  = data['features'].to(self.device).float()
-                else:
-                    features  = data[0].to(self.device)
-                recon = self.forward(features)
-                
-                if epoch<self.ann_epoch:
-                    loss  = self.criterion1(recon, features, data, self.device)
-                else:
-                    loss  = self.criterion2(recon, features, data, self.device)
-                    
+                data     = torch.cat(data, dim=0)
+                print(data.shape)
+                data     = data.to(self.device).float()
+                recon    = self.forward(data)
+
+                loss  = self.criterion1(recon, tau=self.params['tau'])
+         
                 self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
                 r_loss+=loss.item()
+                
             self.scheduler.step()
-            running_loss.append(r_loss/ii)
+            running_loss.append(r_loss/(ii+1))
+            
             try:
                 valid_data    = next(valid_loader)
             except:
                 valid_loader  = iter(self.valid_loader)
                 valid_data    = next(valid_loader)
-            if isinstance(data,dict):
-                features  = valid_data['features'].to(self.device).float()
-            else:
-                features  = valid_data[0].to(self.device)
+                
+            valid_data     = torch.cat(valid_data, dim=0)
+            valid_data     = valid_data.to(self.device).float()
+            
             with torch.no_grad():
-                recon      = self.forward(features)
-                if epoch<self.ann_epoch:
-                    loss       = self.criterion1(recon, features, valid_data, self.device)
-                else:
-                    loss       = self.criterion2(recon, features, valid_data, self.device)
+                recon      = self.forward(valid_data)
+                loss       = self.criterion1(recon, tau=self.params['tau'])
             validation_loss.append(loss.item())
             print(f'epoch: {epoch:d}, training loss: {running_loss[-1]:.4e}, validation loss: {loss:.4e}, learning rate: {self.scheduler.get_last_lr()[0]:.4e}')
+        return running_loss, validation_loss
+    
+    def train_autoencoder(self, nepochs):
+        running_loss    = []
+        validation_loss = []
+        valid_loader = iter(self.valid_loader)
+        for epoch in range(nepochs):
+            r_loss = 0
+            for ii, data in enumerate(self.train_loader,0):
+                if ii==0:
+                    if isinstance(data,dict):
+                        features  = data['features'].to(self.device).float()
+                    else:
+                        features  = data[0].to(self.device)
+                    recon = self.forward(features)
+
+                    if epoch<self.ann_epoch:
+                        loss  = self.criterion1(recon, features, data, self.device)
+                    else:
+                        loss  = self.criterion2(recon, features, data, self.device)
+
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    self.optimizer.step()
+                    r_loss+=loss.item()
+                self.scheduler.step()
+                running_loss.append(r_loss/(ii+1))
+                try:
+                    valid_data    = next(valid_loader)
+                except:
+                    valid_loader  = iter(self.valid_loader)
+                    valid_data    = next(valid_loader)
+                if isinstance(data,dict):
+                    features  = valid_data['features'].to(self.device).float()
+                else:
+                    features  = valid_data[0].to(self.device)
+                with torch.no_grad():
+                    recon      = self.forward(features)
+                    if epoch<self.ann_epoch:
+                        loss       = self.criterion1(recon, features, valid_data, self.device)
+                    else:
+                        loss       = self.criterion2(recon, features, valid_data, self.device)
+                validation_loss.append(loss.item())
+                print(f'epoch: {epoch:d}, training loss: {running_loss[-1]:.4e}, validation loss: {loss:.4e}, learning rate: {self.scheduler.get_last_lr()[0]:.4e}')
         return running_loss, validation_loss

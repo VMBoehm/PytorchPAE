@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 
 def masked_chi2(recon, features, data, device):
@@ -9,17 +10,21 @@ def masked_chi2(recon, features, data, device):
     return torch.mean(chi2)
 
 
-def contrastive_loss(z1,z2,tau):
-    
-    cos_sim   = F.cosine_similarity(z1[:, None, :], z2[None, :, :], dim=-1)
-
+def contrastive_loss(feats,tau):
+    print(feats.shape)
+    print(feats)
+    cos_sim   = F.cosine_similarity(feats[:, None, :], feats[None, :, :], dim=-1)
+    print(cos_sim.shape)
+    print(cos_sim)
     mask      = torch.eye(cos_sim.shape[0], dtype=torch.bool, device=cos_sim.device)
     cos_sim.masked_fill_(mask, -9e15)
+    print(cos_sim)
        
     pos_mask  = mask.roll(shifts=cos_sim.shape[0] // 2, dims=0)
 
     cos_sim   = cos_sim / tau
     nll       = -cos_sim[pos_mask] + torch.logsumexp(cos_sim, dim=-1)
+    print(nll)
     nll       = nll.mean()
     
     return nll
