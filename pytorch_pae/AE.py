@@ -77,10 +77,10 @@ class Autoencoder(nn.Module):
         
     def forward(self, x):
         x = self.encoder(x)
-        if params['contrastive']:
-            x = self.encoder.g.forward(x)
-        else:
-            x = self.decoder(x)
+        # if params['contrastive']:
+        #     x = self.encoder.g.forward(x)
+        # else:
+        x = self.decoder(x)
         return x
     
     @staticmethod

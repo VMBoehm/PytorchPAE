@@ -148,7 +148,7 @@ class ConvDecoder(nn.Module):
         self.pool   = nn.Upsample
         
         self.model  = nn.ModuleList()
-        
+            
         final_shape = nparams['final_c']*nparams['final_dim']**self.N
     
         self.model.append(nn.Flatten())
@@ -238,6 +238,8 @@ class FCDecoder(nn.Module):
         
         lin = nn.Linear(current_dim,params['input_dim']**self.N*params['input_c'])
         self.model.append(spec_norm(lin))
+        gate = getattr(nn, nparams['activations'][ii])()
+        self.model.append(gate)
         
         if nparams['final_sigmoid']: 
             self.model.append(getattr(nn, 'Sigmoid')())
