@@ -90,3 +90,49 @@ class SDSS_DR16_simple(Dataset):
             sample = self.transform(sample)
 
         return sample
+
+    
+class SDSS_DR16_corrupted(Dataset):
+    """De-redshifted and downsampled spectra from SDSS-BOSS DR16, this time with noise and everything"""
+
+    def __init__(self, root_dir='drive/MyDrive/ML_lecture_data/', transform=True, train=True):
+        """
+        Args:
+            root_dir (string): Directory of data file
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+
+        if train:
+            self.data = np.load(open(os.path.join(root_dir,'DR16_train.npy'),'rb'),allow_pickle=True)
+        else:
+            self.data = np.load(open(os.path.join(root_dir,'DR16_test.npy'),'rb'),allow_pickle=True)
+            
+        self.length           = len(self.data['spec'])
+        print(self.data['spec'].shape, self.length)
+            
+        self.data['features'] = np.swapaxes(self.data['spec'],2,1)
+        self.data['mask']     = np.swapaxes(self.data['mask'],2,1)
+        self.data['noise']    = np.swapaxes(self.data['noise'],2,1)
+        
+        print(self.data['features'].shape)
+        
+        del self.data['mean']
+        del self.data['std']
+        del self.data['SN']
+        del self.data['spec']
+        
+        self.keys      = list(self.data.keys())
+        
+        self.transform = transform
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+            
+        sample = {key: torch.as_tensor(self.data[key][idx]).float() for key in self.keys}
+        
+        if self.transform != None:
+            sample = self.transform(sample['features'])
+
+        return sample
