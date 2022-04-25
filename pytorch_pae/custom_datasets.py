@@ -52,7 +52,7 @@ class SDSS_DR16(Dataset):
         
         if self.transform != None:
             sample = self.transform(sample['features'])
-
+       
         return sample
     
     

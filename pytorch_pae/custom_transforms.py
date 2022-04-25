@@ -29,8 +29,7 @@ class RandomMask(object):
         
         rand   = torch.rand(sample.shape,device=sample.device, requires_grad=False, dtype=torch.float32)
 
-        mask   = torch.where(rand<self.masked_frac, True, False)
-        # set masked values to zero
+        mask   = torch.where(rand<self.masked_frac, False, True)
 
 
         sample = torch.where(mask,sample,torch.tensor(0, dtype=torch.float32))
