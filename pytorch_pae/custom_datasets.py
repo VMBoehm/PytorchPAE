@@ -54,3 +54,39 @@ class SDSS_DR16(Dataset):
             sample = self.transform(sample['features'])
 
         return sample
+    
+    
+    
+class SDSS_DR16_simple(Dataset):
+    """De-redshifted and downsampled spectra from SDSS-BOSS DR16"""
+
+    def __init__(self, root_dir='drive/MyDrive/ML_lecture_data/', transform=True, train=True):
+        """
+        Args:
+            root_dir (string): Directory of data file
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+
+        if train:
+            self.data = np.load(open(os.path.join(root_dir,'DR16_denoised_inpainted_train.npy'),'rb'),allow_pickle=True)
+        else:
+            self.data = np.load(open(os.path.join(root_dir,'DR16_denoised_inpainted_test.npy'),'rb'),allow_pickle=True)
+        self.data = torch.as_tensor(self.data)
+        self.mean = torch.mean(self.data)
+        self.std  = torch.std(self.data)
+
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+
+        sample = (self.data[idx]-self.mean)/self.std
+        
+        if self.transform != None:
+            sample = self.transform(sample)
+
+        return sample
