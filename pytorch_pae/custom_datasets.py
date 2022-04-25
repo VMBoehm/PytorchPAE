@@ -22,9 +22,14 @@ class SDSS_DR16(Dataset):
         else:
             self.data = pickle.load(open(os.path.join(root_dir,'SDSS_DR16_preprocessed_test.pkl'),'rb'))
             
-        self.data['features'] = np.swapaxes(self.data['spec'][0:2],2,1)
-        self.data['mask']     = np.swapaxes(self.data['mask'][0:2],2,1)
-        self.data['noise']    = np.swapaxes(self.data['noise'][0:2],2,1)
+        self.length           = len(self.data['spec'])
+        print(self.data['spec'].shape, self.length)
+            
+        self.data['features'] = np.swapaxes(self.data['spec'],2,1)
+        self.data['mask']     = np.swapaxes(self.data['mask'],2,1)
+        self.data['noise']    = np.swapaxes(self.data['noise'],2,1)
+        
+        print(self.data['features'].shape)
         
         del self.data['mean']
         del self.data['std']
@@ -37,13 +42,13 @@ class SDSS_DR16(Dataset):
 
 
     def __len__(self):
-        return len(self.data['features'])
+        return self.length
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
             
-        sample = {key: torch.as_tensor(self.data[key][idx]) for key in self.keys}
+        sample = {key: torch.as_tensor(self.data[key][idx]).float() for key in self.keys}
         
         if self.transform != None:
             sample = self.transform(sample['features'])

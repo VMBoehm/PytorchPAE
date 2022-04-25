@@ -30,6 +30,7 @@ def get_data(data, loc, batchsize, valid_batchsize, transforms):
         training_data = dataset(root=loc,train=True,download=True,transform=transforms)
 
         valid_data    = dataset(root=loc,train=False,download=True,transform=transforms)
+        
     elif data in dir(cd):
         dataset       = getattr(cd,data)
         

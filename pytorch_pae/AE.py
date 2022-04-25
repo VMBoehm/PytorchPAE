@@ -142,7 +142,6 @@ class Autoencoder(nn.Module):
             r_loss = 0
             for ii, data in enumerate(self.train_loader,0):
                 data     = torch.cat(data, dim=0)
-                print(data.shape)
                 data     = data.to(self.device).float()
                 recon    = self.forward(data)
 
