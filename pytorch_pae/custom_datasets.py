@@ -120,6 +120,9 @@ class SDSS_DR16_corrupted(Dataset):
         self.keys      = list(self.data.keys())
         
         self.transform = transform
+        
+    def __len__(self):
+        return self.length
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
