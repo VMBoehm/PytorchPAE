@@ -117,11 +117,6 @@ class SDSS_DR16_corrupted(Dataset):
         
         print(self.data['features'].shape)
         
-        del self.data['mean']
-        del self.data['std']
-        del self.data['SN']
-        del self.data['spec']
-        
         self.keys      = list(self.data.keys())
         
         self.transform = transform
