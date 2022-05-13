@@ -34,9 +34,9 @@ def get_data(data, loc, batchsize, valid_batchsize, transforms):
     elif data in dir(cd):
         dataset       = getattr(cd,data)
         
-        training_data = dataset(train=True,transform=transforms)
+        training_data = dataset(root=loc,train=True,transform=transforms)
 
-        valid_data    = dataset(train=False,transform=transforms)
+        valid_data    = dataset(root=loc,train=False,transform=transforms)
     else:
         raise Exception(f'Dataset {data:s} not supported at this time')
     
