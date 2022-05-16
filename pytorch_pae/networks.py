@@ -129,6 +129,7 @@ class ConvEncoder(nn.Module):
         if params['contrastive']:
             self.g = g_network(params['latent_dim'],params['hidden_dim'])
             
+            
     def forward(self, x):
         for i, l in enumerate(self.model):
             x = l(x)

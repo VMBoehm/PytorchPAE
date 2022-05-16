@@ -21,7 +21,7 @@ from torch.utils.data import DataLoader
 
 import pytorch_pae.custom_datasets as cd
 
-def get_data(data, loc, batchsize, valid_batchsize, transforms=None):
+def get_data(data, loc, batchsize, valid_batchsize, transforms):
     shuffle = True
     
     if data in dir(datasets):
@@ -30,12 +30,13 @@ def get_data(data, loc, batchsize, valid_batchsize, transforms=None):
         training_data = dataset(root=loc,train=True,download=True,transform=transforms)
 
         valid_data    = dataset(root=loc,train=False,download=True,transform=transforms)
+        
     elif data in dir(cd):
         dataset       = getattr(cd,data)
         
-        training_data = dataset(train=True,transform=transforms)
+        training_data = dataset(root_dir=loc,train=True,transform=transforms)
 
-        valid_data    = dataset(train=False,transform=transforms)
+        valid_data    = dataset(root_dir=loc,train=False,transform=transforms)
     else:
         raise Exception(f'Dataset {data:s} not supported at this time')
     
