@@ -24,7 +24,6 @@ import pytorch_pae.custom_losses as cl
 from pytorch_pae.data_loader import *
 from pytorch_pae import custom_transforms as ct
 
-
 from functools import partial
 
 
@@ -178,17 +177,16 @@ class Autoencoder(nn.Module):
         for epoch in range(nepochs):
             r_loss = 0
             for ii, data in enumerate(self.train_loader,0):
-                if ii==0:
-                    if isinstance(data,dict):
-                        features  = data['features'].to(self.device).float()
-                    else:
-                        features  = data[0].to(self.device)
-                    recon = self.forward(features)
+                if isinstance(data,dict):
+                    features  = data['features'].to(self.device).float()
+                else:
+                    features  = data[0].to(self.device)
+                recon = self.forward(features)
 
-                    if epoch<self.ann_epoch:
-                        loss  = self.criterion1(recon, features, data, self.device)
-                    else:
-                        loss  = self.criterion2(recon, features, data, self.device)
+                if epoch<self.ann_epoch:
+                    loss  = self.criterion1(recon, features, data, self.device)
+                else:
+                    loss  = self.criterion2(recon, features, data, self.device)
 
                     self.optimizer.zero_grad()
                     loss.backward()
