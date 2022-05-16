@@ -1,4 +1,8 @@
 import torch
+<<<<<<< HEAD
+=======
+import torch.nn.functional as F
+>>>>>>> contrastive
 
 
 def masked_chi2(recon, features, data, device):
@@ -9,10 +13,8 @@ def masked_chi2(recon, features, data, device):
     return torch.mean(chi2)
 
 
-def contrastive_loss(z1,z2,tau):
-    
-    cos_sim   = F.cosine_similarity(z1[:, None, :], z2[None, :, :], dim=-1)
-
+def contrastive_loss(feats,tau):
+    cos_sim   = F.cosine_similarity(feats[:, None, :], feats[None, :, :], dim=-1)
     mask      = torch.eye(cos_sim.shape[0], dtype=torch.bool, device=cos_sim.device)
     cos_sim.masked_fill_(mask, -9e15)
        
