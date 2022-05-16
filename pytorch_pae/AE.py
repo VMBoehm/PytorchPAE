@@ -28,7 +28,7 @@ from functools import partial
 
 
 class Autoencoder(nn.Module):
-    def __init__(self, params, dparams, nparams_enc, nparams_dec, tparams, device):
+    def __init__(self, params, dparams, nparams_enc, nparams_dec, tparams, device, transforms=None):
         super(Autoencoder, self).__init__()
         
         if params['encoder_type'] == 'conv':
@@ -64,7 +64,7 @@ class Autoencoder(nn.Module):
         elif tparams['criterion2'] in dir(cl):
             self.criterion2 = getattr(cl, tparams['criterion2'])
             
-        self.train_loader, self.valid_loader = get_data(dparams['dataset'],dparams['loc'],tparams['batchsize'],tparams['batchsze_valid'], transforms)
+        self.train_loader, self.valid_loader = get_data(dparams['dataset'],dparams['loc'],tparams['batchsize'],tparams['batchsize_valid'], transforms)
         
         self.device = device
         
@@ -77,7 +77,7 @@ class Autoencoder(nn.Module):
         
     def forward(self, x):
         x = self.encoder(x)
-        if params['contrastive']:
+        if self.params['contrastive']:
             x = self.encoder.g.forward(x)
         else:
             x = self.decoder(x)
@@ -114,7 +114,7 @@ class Autoencoder(nn.Module):
     def update_optimizer(self,optimizer):
         
         self.optimizer = getattr(optim, optimizer)
-        self.optimizer  = self.optimizer(self.parameters(),tparams['initial_lr'])
+        self.optimizer = self.optimizer(self.parameters(),tparams['initial_lr'])
         
         self.scheduler = partial(getattr(torch.optim.lr_scheduler, tparams['scheduler']),self.optimizer)
         self.scheduler = self.scheduler(**tparams['scheduler_params'])
