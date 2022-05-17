@@ -29,7 +29,6 @@ class SDSS_DR16(Dataset):
         self.data['mask']     = np.swapaxes(self.data['mask'],2,1)
         self.data['noise']    = np.swapaxes(self.data['noise'],2,1)
         
-        print(self.data['features'].shape)
         
         del self.data['mean']
         del self.data['std']

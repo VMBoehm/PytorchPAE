@@ -19,7 +19,6 @@ def contrastive_loss(feats,tau):
 
     cos_sim   = cos_sim / tau
     nll       = -cos_sim[pos_mask] + torch.logsumexp(cos_sim, dim=-1)
-
     nll       = nll.mean()
     
     return nll
