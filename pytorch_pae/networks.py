@@ -250,8 +250,8 @@ class FCDecoder(nn.Module):
         
         lin = nn.Linear(current_dim,params['input_dim']**self.N*params['input_c'])
         self.model.append(spec_norm(lin))
-        gate = getattr(nn, nparams['activations'][ii])()
-        self.model.append(gate)
+        #gate = getattr(nn, nparams['activations'][ii])()
+        #self.model.append(gate)
         
         if nparams['final_sigmoid']: 
             self.model.append(getattr(nn, 'Sigmoid')())

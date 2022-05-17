@@ -140,10 +140,6 @@ class Autoencoder(nn.Module):
         for epoch in range(nepochs):
             r_loss = 0
             for ii, data in enumerate(self.train_loader,0):
-<<<<<<< HEAD
-=======
-                    
->>>>>>> af74491012dff40fc42e97844d8f5d8db6d0320c
                 data     = torch.cat(data, dim=0)
                 data     = data.to(self.device).float()
                 recon    = self.forward(data)
