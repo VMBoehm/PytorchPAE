@@ -92,7 +92,7 @@ class SDSS_DR16_simple(Dataset):
         return sample
 
     
-class SDSS_DR16_corrupted(Dataset):
+class SDSS_DR16_small(Dataset):
     """De-redshifted and downsampled spectra from SDSS-BOSS DR16, this time with noise and everything"""
 
     def __init__(self, root_dir='drive/MyDrive/ML_lecture_data/', transform=True, train=True):

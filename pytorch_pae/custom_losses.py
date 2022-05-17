@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 def masked_chi2(recon, features, data, device):
     
-    chi2 = (recon-features)**2*data['noise'].to(device).float()
+    chi2 = (recon-features)**2*data['noise'].to(device).float() #data['noise']=1/var
     chi2 = torch.masked_select(chi2, data['mask'].to(device).bool())
     
     return torch.mean(chi2)

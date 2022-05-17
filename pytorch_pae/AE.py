@@ -188,27 +188,29 @@ class Autoencoder(nn.Module):
                 else:
                     loss  = self.criterion2(recon, features, data, self.device)
 
-                    self.optimizer.zero_grad()
-                    loss.backward()
-                    self.optimizer.step()
-                    r_loss+=loss.item()
-                self.scheduler.step()
-                running_loss.append(r_loss/(ii+1))
-                try:
-                    valid_data    = next(valid_loader)
-                except:
-                    valid_loader  = iter(self.valid_loader)
-                    valid_data    = next(valid_loader)
-                if isinstance(data,dict):
-                    features  = valid_data['features'].to(self.device).float()
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+                r_loss+=loss.item()
+            
+            running_loss.append(r_loss/(ii+1))
+
+            try:
+                valid_data    = next(valid_loader)
+            except:
+                valid_loader  = iter(self.valid_loader)
+                valid_data    = next(valid_loader)
+            if isinstance(data,dict):
+                features  = valid_data['features'].to(self.device).float()
+            else:
+                features  = valid_data[0].to(self.device)
+            with torch.no_grad():
+                recon      = self.forward(features)
+                if epoch<self.ann_epoch:
+                    loss       = self.criterion1(recon, features, valid_data, self.device)
                 else:
-                    features  = valid_data[0].to(self.device)
-                with torch.no_grad():
-                    recon      = self.forward(features)
-                    if epoch<self.ann_epoch:
-                        loss       = self.criterion1(recon, features, valid_data, self.device)
-                    else:
-                        loss       = self.criterion2(recon, features, valid_data, self.device)
+                    loss       = self.criterion2(recon, features, valid_data, self.device)
                 validation_loss.append(loss.item())
-                print(f'epoch: {epoch:d}, training loss: {running_loss[-1]:.4e}, validation loss: {loss:.4e}, learning rate: {self.scheduler.get_last_lr()[0]:.4e}')
+            print(f'epoch: {epoch:d}, training loss: {running_loss[-1]:.4e}, validation loss: {loss:.4e}, learning rate: {self.scheduler.get_last_lr()[0]:.4e}')
+            self.scheduler.step()
         return running_loss, validation_loss
