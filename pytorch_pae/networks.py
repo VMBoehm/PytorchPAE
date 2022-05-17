@@ -63,6 +63,14 @@ class FCEncoder(nn.Module):
         lin = nn.Linear(current_dim,params['latent_dim'])
         self.model.append(spec_norm(lin))
         
+        if params['contrastive']:
+            self.g = g_network(params['latent_dim'],params['hidden_dim'])
+            
+    def forward(self, x):
+        for i, l in enumerate(self.model):
+            x = l(x)
+        return x
+        
         
 class ConvEncoder(nn.Module):
     def __init__(self, params, nparams):
@@ -117,15 +125,16 @@ class ConvEncoder(nn.Module):
         current_shape = current_channels*current_dim**self.N
         linear        = nn.Linear(current_shape,params['latent_dim'])
         self.model.append(spec_norm(linear))
+        
+        if params['contrastive']:
+            self.g = g_network(params['latent_dim'],params['hidden_dim'])
+            
             
     def forward(self, x):
         for i, l in enumerate(self.model):
-
             x = l(x)
-
         return x
-    
-    
+
 
 class ConvDecoder(nn.Module):
     def __init__(self, params, nparams):
@@ -173,7 +182,10 @@ class ConvDecoder(nn.Module):
             current_dim = current_dim*nparams['scale_facs'][ii]
                               
             output_padding = utils.get_output_padding(current_dim,nparams['out_dims'][ii],nparams['strides'][ii],nparams['paddings'][ii],nparams['kernel_sizes'][ii],dilation=1)
-            conv           = self.conv(current_channels, nparams['out_channels'][ii], kernel_size=nparams['kernel_sizes'][ii], stride=nparams['strides'][ii], padding=nparams['paddings'][ii], output_padding=output_padding,bias=nparams['bias'][ii])
+                
+            
+            conv           = self.conv(current_channels, nparams['out_channels'][ii], kernel_size=nparams['kernel_sizes'][ii], stride= nparams['strides'][ii], padding=nparams['paddings'][ii], output_padding=output_padding,bias=nparams['bias'][ii])
+            
             self.model.append(spec_norm(conv))
             
             current_channels = nparams['out_channels'][ii]
@@ -245,8 +257,29 @@ class FCDecoder(nn.Module):
             self.model.append(getattr(nn, 'Sigmoid')())
         
         self.model.append(utils.Reshape([-1]+[params['input_c']]+[params['input_dim']]*self.N))
-        
+    
+    def forward(self, x):
+        for i, l in enumerate(self.model):
+            x = l(x)
+        return x
 
+    
+class g_network(nn.Module):
+    """
+    encoder head for contrastive learning loss
+    """
+    def __init__(self, input_dim, output_dim):
+        super(g_network, self).__init__()
+        
+        self.model = nn.ModuleList()
+        
+        self.model.append(nn.ReLU())
+        lin = nn.Linear(input_dim, (input_dim+output_dim)//2)
+        self.model.append(lin)
+        
+        self.model.append(nn.ReLU())
+        lin = nn.Linear((input_dim+output_dim)//2,output_dim)
+        self.model.append(lin)
         
     def forward(self, x):
         for i, l in enumerate(self.model):
