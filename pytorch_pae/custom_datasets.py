@@ -91,7 +91,7 @@ class SDSS_DR16_simple(Dataset):
         return sample
 
     
-class SDSS_DR16_small(Dataset):
+class SDSS_DR16_small_labeled(Dataset):
     """De-redshifted and downsampled spectra from SDSS-BOSS DR16, this time with noise and everything"""
 
     def __init__(self, root_dir='drive/MyDrive/ML_lecture_data/', transform=True, train=True):
@@ -112,10 +112,11 @@ class SDSS_DR16_small(Dataset):
         self.data['features'] = np.swapaxes(self.data['spec'],2,1)
         self.data['mask']     = np.swapaxes(self.data['mask'],2,1)
         self.data['noise']    = np.swapaxes(self.data['noise'],2,1)
+        self.data['labels']   = self.data['new_inf_labels']
         
-        self.keys      = list(self.data.keys())
+        self.keys             = list(self.data.keys())
         
-        self.transform = transform
+        self.transform        = transform
         
     def __len__(self):
         return self.length
@@ -124,7 +125,7 @@ class SDSS_DR16_small(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
             
-        sample = {key: torch.as_tensor(self.data[key][idx]).float() for key in self.keys}
+        sample = {key: torch.as_tensor(self.data[key][idx]).float() for key in ['features', 'mask', 'labels','z']}
         
         if self.transform != None:
             sample = self.transform(sample['features'])
