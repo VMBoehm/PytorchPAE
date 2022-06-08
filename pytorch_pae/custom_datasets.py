@@ -125,7 +125,7 @@ class SDSS_DR16_small_labeled(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
             
-        sample = {key: torch.as_tensor(self.data[key][idx]).float() for key in ['features', 'mask', 'labels','z']}
+        sample = {key: torch.as_tensor(self.data[key][idx]).float() for key in ['features', 'mask', 'labels','noise','z']}
         
         if self.transform != None:
             sample = self.transform(sample['features'])
