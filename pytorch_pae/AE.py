@@ -170,10 +170,13 @@ class Autoencoder(nn.Module):
             print(f'epoch: {epoch:d}, training loss: {running_loss[-1]:.4e}, validation loss: {loss:.4e}, learning rate: {self.scheduler.get_last_lr()[0]:.4e}')
         return running_loss, validation_loss
     
-    def train_autoencoder(self, nepochs):
+    def train_autoencoder(self, nepochs, patience_threshold=3e-2, patience=5):
         running_loss    = []
         validation_loss = []
         valid_loader = iter(self.valid_loader)
+        best_val_loss   = 1000
+        patience_count  = 0
+               
         for epoch in range(nepochs):
             r_loss = 0
             for ii, data in enumerate(self.train_loader,0):
@@ -211,6 +214,13 @@ class Autoencoder(nn.Module):
                 else:
                     loss       = self.criterion2(recon, features, valid_data, self.device)
                 validation_loss.append(loss.item())
+                if loss<best_val_loss+patience_threshold:
+                    best_val_loss=loss
+                else:
+                    patience_count+=1
+            if patience_count>=patience:
+                break
+                
             print(f'epoch: {epoch:d}, training loss: {running_loss[-1]:.4e}, validation loss: {loss:.4e}, learning rate: {self.scheduler.get_last_lr()[0]:.4e}')
             self.scheduler.step()
         return running_loss, validation_loss
