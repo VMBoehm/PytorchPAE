@@ -21,22 +21,27 @@ from torch.utils.data import DataLoader
 
 import pytorch_pae.custom_datasets as cd
 
-def get_data(data, loc, batchsize, valid_batchsize, transforms):
+def get_data(data, loc, batchsize, valid_batchsize, transforms, name=None):
     shuffle = True
     
     if data in dir(datasets):
         dataset = getattr(datasets,data)
     
-        training_data = dataset(root=loc,train=True,download=True,transform=transforms)
+        training_data = dataset(root=loc,split='train',download=True,transform=transforms)
 
-        valid_data    = dataset(root=loc,train=False,download=True,transform=transforms)
+        valid_data    = dataset(root=loc,split='valid',download=True,transform=transforms)
+        
+        test_data    = dataset(root=loc,split='test',download=True,transform=transforms)
+
         
     elif data in dir(cd):
         dataset       = getattr(cd,data)
         
-        training_data = dataset(root_dir=loc,train=True,transform=transforms)
+        training_data = dataset(root_dir=loc,split='train',transform=transforms, name=name)
 
-        valid_data    = dataset(root_dir=loc,train=False,transform=transforms)
+        valid_data    = dataset(root_dir=loc,split='valid',transform=transforms, name=name)
+        
+        test_data    = dataset(root_dir=loc,split='test',transform=transforms, name=name)
     else:
         raise Exception(f'Dataset {data:s} not supported at this time')
     
@@ -49,7 +54,8 @@ def get_data(data, loc, batchsize, valid_batchsize, transforms):
  
     train_dataloader = DataLoader(training_data, batch_size=batchsize, shuffle=shuffle)
     valid_dataloader = DataLoader(valid_data, batch_size=valid_batchsize, shuffle=shuffle)
+    test_dataloader = DataLoader(test_data, batch_size=valid_batchsize, shuffle=shuffle)
     
-    return train_dataloader, valid_dataloader
+    return train_dataloader, valid_dataloader, test_dataloader
 
 
