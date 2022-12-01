@@ -21,7 +21,7 @@ Optional:
 
 Installation:
 ```sh
-git clone https://github.com/VMBoehm/PytorchPAE
+git clone https://github.com/VMBoehm/PytorchPAE.git
 ```
 ```sh
 cd PytorchPAE
