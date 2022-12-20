@@ -36,4 +36,18 @@ pip install -e .
 
 A tutorial for how to use his package is provided [here](https://github.com/VMBoehm/PytorchPAE/blob/main/notebooks/Tutorial.ipynb)
 
+## Citation
 
+If you use this code for your research, please cite our [paper](https://arxiv.org/abs/2006.05479):
+
+```
+@ARTICLE{PAE,
+       author = {{B{\"o}hm}, Vanessa and {Seljak}, Uro{\v{s}}},
+       title={Probabilistic Autoencoder},
+       journal={Transactions on Machine Learning Research},
+       year={2022},
+       url={https://openreview.net/forum?id=AEoYjvjKVA},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2020arXiv200605479B},
+       doi = {10.48550/ARXIV.2006.05479}
+}
+```
